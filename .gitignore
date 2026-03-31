@@ -1,0 +1,12 @@
+# Terraform
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars
+
+# Vault init output (contains root token and recovery keys)
+vault-init.json
+
+# macOS
+.DS_Store

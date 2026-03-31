@@ -1,0 +1,8 @@
+# Copy this file to terraform.auto.tfvars and fill in your values.
+# terraform.auto.tfvars is gitignored — never commit real credentials.
+
+rh_username        = "you@example.com"
+rh_password        = "your-redhat-portal-password"
+idm_admin_password = "choose-a-strong-password"   # IPA admin user
+idm_ds_password    = "choose-a-strong-password"   # IPA directory server
+vault_license      = "02MV4UU43BK5H..."            # paste full license string

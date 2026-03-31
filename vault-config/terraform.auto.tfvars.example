@@ -1,0 +1,10 @@
+# Copy this file to terraform.auto.tfvars and fill in your values.
+# terraform.auto.tfvars is gitignored — never commit real credentials.
+
+vault_addr  = "https://<vault_public_ip>:8200"  # from: terraform output vault_addr — must be https
+vault_token = "hvs.XXXXXXXX"                    # root_token from vault-init.json on Vault server
+idm_ca_cert = <<-EOT
+  -----BEGIN CERTIFICATE-----
+  ... paste contents of ~/idm-ca.crt from IDM server ...
+  -----END CERTIFICATE-----
+EOT
