@@ -14,7 +14,7 @@ Red Hat IDM (CA)
 
 ## Prerequisites
 
-- AWS sandbox account with EC2 key pair named `billgrant`
+- AWS account with EC2 key pair.
 - Red Hat Developer Portal credentials
 - Vault Enterprise license
 - Terraform installed locally
