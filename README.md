@@ -1,4 +1,6 @@
-# idm-vault-lab
+# idm-vault-lab — `edr` branch
+
+> **Note:** This branch uses IBM-internal RHEL images with EDR pre-installed and requires access to an IBM AWS account. For the general-purpose version use the [`main`](../../tree/main) branch.
 
 If you're already using Red Hat IDM to manage your RHEL fleet, every enrolled machine has an IDM-issued certificate. This POC demonstrates using that certificate to authenticate to HashiCorp Vault via the TLS cert auth method — giving you machine identity-based access to secrets without AppRole or any shared credentials.
 

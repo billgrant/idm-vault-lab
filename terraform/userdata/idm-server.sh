@@ -3,10 +3,13 @@ set -euxo pipefail
 exec > >(tee /var/log/idm-bootstrap.log) 2>&1
 
 # ── Red Hat subscription ───────────────────────────────────────────────────────
-subscription-manager register \
-  --username='${rh_username}' \
-  --password='${rh_password}' \
-  --auto-attach
+# Skip if already registered (e.g. pre-subscribed IBM internal images)
+if ! subscription-manager status &>/dev/null; then
+  subscription-manager register \
+    --username='${rh_username}' \
+    --password='${rh_password}' \
+    --auto-attach
+fi
 
 # ── Install IDM packages ───────────────────────────────────────────────────────
 dnf install -y ipa-server ipa-server-dns

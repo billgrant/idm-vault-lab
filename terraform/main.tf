@@ -1,21 +1,19 @@
 # ── AMI ──────────────────────────────────────────────────────────────────────
+# IBM-internal approved RHEL 9 image with EDR pre-installed.
+# Owner 888995627335 is the IBM ami-prod account — this AMI is not publicly
+# available, so this branch is not suitable for external use.
 data "aws_ami" "rhel9" {
   most_recent = true
-  owners      = ["309956199498"] # Red Hat official
+  owners      = ["888995627335"] # IBM ami-prod account
 
   filter {
     name   = "name"
-    values = ["RHEL-9*GA*"]
+    values = ["hc-base-rhel-9-x86_64-*"]
   }
 
   filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
+    name   = "state"
+    values = ["available"]
   }
 }
 
