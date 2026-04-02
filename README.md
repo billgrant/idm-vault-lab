@@ -2,14 +2,31 @@
 
 If you're already using Red Hat IDM to manage your RHEL fleet, every enrolled machine has an IDM-issued certificate. This POC demonstrates using that certificate to authenticate to HashiCorp Vault via the TLS cert auth method — giving you machine identity-based access to secrets without AppRole or any shared credentials.
 
-## Flow
+## Infrastructure & Flow
 
 ```
-Red Hat IDM (CA)
-  └─ issues host cert to client VM
-       └─ client presents cert to Vault via mutual TLS
-            └─ Vault validates cert against IDM CA → issues token
-                 └─ client reads secret/demo/machine-secret
+  AWS VPC — demo.lab (Route53 private zone)
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                                                                 │
+  │   ┌──────────────────┐              ┌──────────────────────┐    │
+  │   │  idm.demo.lab    │──(2)CA cert──►  vault.demo.lab      │    │
+  │   │                  │   trusted    │                      │    │
+  │   │  Red Hat IDM     │              │  Vault Enterprise    │    │
+  │   │  FreeIPA CA      │              │  cert auth method    │    │
+  │   └────────┬─────────┘              │  KMS auto-unseal     │    │
+  │            │                        └──────────┬───────────┘    │
+  │        (1) issues                              │                │
+  │        host cert                    (3) vault login -method=cert│
+  │            │                        (4) token issued            │
+  │            ▼                                   │                │
+  │   ┌──────────────────┐                         │                │
+  │   │  client.demo.lab │◄────────────────────────┘                │
+  │   │                  │                                          │
+  │   │  RHEL VM         │──(5)──► vault kv get secret/demo/...     │
+  │   │  IDM enrolled    │         secret returned                  │
+  │   └──────────────────┘                                          │
+  │                                                                 │
+  └─────────────────────────────────────────────────────────────────┘
 ```
 
 ## Prerequisites
@@ -38,6 +55,7 @@ scripts/        — demo.sh runs on the client VM
 ### 1. Provision infrastructure
 
 Copy the example tfvars and fill in your values:
+
 ```bash
 cd terraform
 cp terraform.auto.tfvars.example terraform.auto.tfvars
@@ -47,12 +65,14 @@ terraform apply
 ```
 
 IDM takes **15–20 minutes** to fully bootstrap. Monitor progress:
+
 ```bash
 ssh -i ~/.ssh/<key_pair_name>.pem ec2-user@<idm_public_ip> 'tail -f /var/log/idm-bootstrap.log'
 # Done when you see: /home/ec2-user/idm-ready
 ```
 
 Vault bootstraps faster (~2 min). Confirm it's ready:
+
 ```bash
 ssh -i ~/.ssh/<key_pair_name>.pem ec2-user@<vault_public_ip> 'cat ~/vault-ready'
 ```
@@ -60,6 +80,7 @@ ssh -i ~/.ssh/<key_pair_name>.pem ec2-user@<vault_public_ip> 'cat ~/vault-ready'
 ### 2. Save Vault credentials
 
 Vault auto-unseals via KMS. Just save the root token and recovery keys:
+
 ```bash
 ssh -i ~/.ssh/<key_pair_name>.pem ec2-user@<vault_public_ip> 'cat ~/vault-init.json'
 ```
@@ -67,6 +88,7 @@ ssh -i ~/.ssh/<key_pair_name>.pem ec2-user@<vault_public_ip> 'cat ~/vault-init.j
 ### 3. Configure Vault
 
 Copy the example tfvars and fill in your values:
+
 ```bash
 cd vault-config
 cp terraform.auto.tfvars.example terraform.auto.tfvars
@@ -77,11 +99,13 @@ cp terraform.auto.tfvars.example terraform.auto.tfvars
 ```
 
 Get the IDM CA cert:
+
 ```bash
 ssh -i ~/.ssh/<key_pair_name>.pem ec2-user@<idm_public_ip> 'cat ~/idm-ca.crt'
 ```
 
 Apply — `VAULT_SKIP_VERIFY=true` is required because Vault uses a self-signed cert:
+
 ```bash
 VAULT_SKIP_VERIFY=true terraform init
 VAULT_SKIP_VERIFY=true terraform apply
@@ -90,6 +114,7 @@ VAULT_SKIP_VERIFY=true terraform apply
 ### 4. Run the demo
 
 Copy `demo.sh` to the client VM and run it:
+
 ```bash
 scp -i ~/.ssh/<key_pair_name>.pem scripts/demo.sh ec2-user@<client_public_ip>:~/
 ssh -i ~/.ssh/<key_pair_name>.pem ec2-user@<client_public_ip>
@@ -97,6 +122,7 @@ sudo bash demo.sh <vault_public_ip> <idm_admin_password>
 ```
 
 The script will:
+
 1. Enroll the client with IDM (`ipa-client-install`)
 2. Request a host certificate from the IDM CA (`ipa-getcert`)
 3. Authenticate to Vault using the cert (`vault login -method=cert`)

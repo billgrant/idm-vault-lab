@@ -16,6 +16,17 @@ echo "======================================================="
 echo " Vault: $VAULT_ADDR"
 echo ""
 
+# ── Reset from previous run ───────────────────────────────────────────────────
+# Makes the script safe to run repeatedly — unenroll and clean up cert state
+# before starting fresh. No-ops on a clean machine.
+if [ -f /etc/ipa/default.conf ]; then
+  echo "--- Previous enrollment detected, resetting for clean demo ---"
+  ipa-getcert stop-tracking -f /etc/pki/tls/certs/client.crt &>/dev/null || true
+  ipa-client-install --uninstall --unattended
+  rm -f /etc/pki/tls/certs/client.crt /etc/pki/tls/private/client.key
+  echo "--- Reset complete ---"
+fi
+
 # ── Step 1: Unseal check ──────────────────────────────────────────────────────
 echo "--- Checking Vault status ---"
 vault status

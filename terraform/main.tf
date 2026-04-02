@@ -315,6 +315,10 @@ resource "aws_instance" "idm" {
     idm_ds_password    = var.idm_ds_password
   })
 
+  lifecycle {
+    ignore_changes = [ami]
+  }
+
   tags = { Name = "idm-server" }
 }
 
@@ -337,6 +341,10 @@ resource "aws_instance" "vault" {
     aws_region     = var.aws_region
   })
 
+  lifecycle {
+    ignore_changes = [ami]
+  }
+
   tags = { Name = "vault-server" }
 }
 
@@ -356,6 +364,10 @@ resource "aws_instance" "client" {
     rh_username = var.rh_username
     rh_password = var.rh_password
   })
+
+  lifecycle {
+    ignore_changes = [ami]
+  }
 
   tags = { Name = "client-vm" }
 }
