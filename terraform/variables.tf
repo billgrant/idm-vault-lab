@@ -39,3 +39,15 @@ variable "vault_license" {
   type        = string
   sensitive   = true
 }
+
+variable "ami_owner" {
+  description = "AWS account ID that owns the RHEL 9 AMI"
+  type        = string
+  default     = "309956199498" # Red Hat official — override for internal images
+}
+
+variable "ami_name_pattern" {
+  description = "Name filter pattern for the RHEL 9 AMI"
+  type        = string
+  default     = "RHEL-9*GA*" # override for internal images e.g. hc-base-rhel-9-x86_64-*
+}

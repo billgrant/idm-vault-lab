@@ -1,14 +1,13 @@
 # ── AMI ──────────────────────────────────────────────────────────────────────
-# IBM-internal approved RHEL 9 image with EDR pre-installed.
-# Owner 888995627335 is the IBM ami-prod account — this AMI is not publicly
-# available, so this branch is not suitable for external use.
+# Defaults to the public Red Hat RHEL 9 AMI. Override ami_owner and
+# ami_name_pattern in your terraform.auto.tfvars to use an internal image.
 data "aws_ami" "rhel9" {
   most_recent = true
-  owners      = ["888995627335"] # IBM ami-prod account
+  owners      = [var.ami_owner]
 
   filter {
     name   = "name"
-    values = ["hc-base-rhel-9-x86_64-*"]
+    values = [var.ami_name_pattern]
   }
 
   filter {

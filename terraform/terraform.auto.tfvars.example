@@ -6,3 +6,7 @@ rh_password        = "your-redhat-portal-password"
 idm_admin_password = "choose-a-strong-password"   # IPA admin user
 idm_ds_password    = "choose-a-strong-password"   # IPA directory server
 vault_license      = "02MV4UU43BK5H..."            # paste full license string
+
+# Optional: override to use an internal/approved image instead of public Red Hat AMI
+# ami_owner        = "888995627335"
+# ami_name_pattern = "hc-base-rhel-9-x86_64-*"
