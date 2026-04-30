@@ -33,6 +33,21 @@ output "ssh_client" {
   value       = "ssh -i ~/.ssh/${var.key_pair_name}.pem ec2-user@${aws_instance.client.public_ip}"
 }
 
+output "idm_bootstrap_log" {
+  description = "Stream the IDM bootstrap log — useful for watching progress in real time"
+  value       = "ssh -i ~/.ssh/${var.key_pair_name}.pem ec2-user@${aws_instance.idm.public_ip} 'tail -f /var/log/idm-bootstrap.log'"
+}
+
+output "idm_ca_cert_command" {
+  description = "Retrieve the IDM CA cert — paste the output into vault-config/terraform.auto.tfvars"
+  value       = "ssh -i ~/.ssh/${var.key_pair_name}.pem ec2-user@${aws_instance.idm.public_ip} 'cat ~/idm-ca.crt'"
+}
+
+output "scp_demo_sh" {
+  description = "Copy demo.sh to the client VM before running it"
+  value       = "scp -i ~/.ssh/${var.key_pair_name}.pem scripts/demo.sh ec2-user@${aws_instance.client.public_ip}:~/"
+}
+
 output "kms_key_id" {
   description = "KMS key ID used for Vault auto-unseal"
   value       = aws_kms_key.vault.key_id
@@ -42,13 +57,21 @@ output "next_steps" {
   description = "What to do after terraform apply"
   value       = <<-EOT
     Next steps:
-    1. Wait ~15 min for IDM to finish bootstrapping
-       Check: ssh ec2-user@${aws_instance.idm.public_ip} 'cat ~/idm-ready'
-    2. Vault is auto-unsealed via KMS — no manual unseal needed
-       SSH to Vault: ${aws_instance.vault.public_ip}
-       Run: cat ~/vault-init.json   (save the root token and recovery keys)
-    3. cd ../vault-config && terraform apply
-       (pass idm_ca_cert, vault_addr, vault_token as variables)
-    4. SSH to client, run: sudo bash demo.sh <vault_public_ip> <idm_admin_password>
+    1. Watch IDM bootstrap (takes ~15 min):
+       ssh -i ~/.ssh/${var.key_pair_name}.pem ec2-user@${aws_instance.idm.public_ip} 'tail -f /var/log/idm-bootstrap.log'
+       Done when you see: idm-ready
+
+    2. Save Vault credentials (auto-unsealed via KMS — no manual unseal needed):
+       ssh -i ~/.ssh/${var.key_pair_name}.pem ec2-user@${aws_instance.vault.public_ip} 'cat ~/vault-init.json'
+
+    3. Configure Vault:
+       Run idm_ca_cert_command output to get the CA cert, then:
+       cd ../vault-config
+       VAULT_SKIP_VERIFY=true terraform apply
+
+    4. Copy demo.sh and run it:
+       scp -i ~/.ssh/${var.key_pair_name}.pem scripts/demo.sh ec2-user@${aws_instance.client.public_ip}:~/
+       ssh -i ~/.ssh/${var.key_pair_name}.pem ec2-user@${aws_instance.client.public_ip}
+       sudo bash demo.sh ${aws_instance.vault.public_ip} <idm_admin_password>
   EOT
 }
